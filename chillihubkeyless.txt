@@ -1,0 +1,250 @@
+-- Cấu hình Key và thời gian lưu (24 giờ = 86400 giây)
+local CORRECT_KEY = "ChilliHubKeyHdiehBskaowoejVdjsowieBdkaowiJsjwowop"
+local SCRIPT_URL = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua"
+local KEY_FILE = "ChilliHub_SavedKey.json"
+local KEY_DURATION = 86400 
+local TweenService = game:GetService("TweenService")
+
+-- Hàm chạy script chính kèm bộ bắt lỗi an toàn
+local function loadMainScript()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(SCRIPT_URL))()
+    end)
+    if not success then
+        warn("Chilli Hub Script Error: " .. tostring(err))
+    end
+end
+
+-- Hàm kiểm tra xem đã lưu key hợp lệ trong 24h chưa
+local function checkSavedKey()
+    if readfile and isfile and isfile(KEY_FILE) then
+        local success, data = pcall(function()
+            return game:GetService("HttpService"):JSONDecode(readfile(KEY_FILE))
+        end)
+        if success and data and data.Key == CORRECT_KEY then
+            local currentTime = os.time()
+            if (currentTime - data.Timestamp) < KEY_DURATION then
+                return true -- Key vẫn còn hạn, tự động bỏ qua bảng key
+            end
+        end
+    end
+    return false
+end
+
+-- Hàm lưu key mới
+local function saveKey()
+    if writefile then
+        local data = {
+            Key = CORRECT_KEY,
+            Timestamp = os.time()
+        }
+        pcall(function()
+            writefile(KEY_FILE, game:GetService("HttpService"):JSONEncode(data))
+        end)
+    end
+end
+
+-- Nếu đã lưu key hợp lệ từ trước, tự động chạy luôn script mà không hiện bảng Key
+if checkSavedKey() then
+    loadMainScript()
+    return
+end
+
+-- Khởi tạo GUI chính nếu chưa có key
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local UIStroke = Instance.new("UIStroke")
+local TopBar = Instance.new("Frame")
+local TitleLabel = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local ContentFrame = Instance.new("Frame")
+local Subtitle = Instance.new("TextLabel")
+local TextBox = Instance.new("TextBox")
+local TextBoxCorner = Instance.new("UICorner")
+local TextBoxStroke = Instance.new("UIStroke")
+local CheckButton = Instance.new("TextButton")
+local CheckCorner = Instance.new("UICorner")
+local GetKeyButton = Instance.new("TextButton")
+local GetKeyCorner = Instance.new("UICorner")
+local StatusLabel = Instance.new("TextLabel")
+
+ScreenGui.Parent = game.CoreGui
+ScreenGui.Name = "ChilliHubKeySystem"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+MainFrame.BackgroundTransparency = 0.08
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -135)
+MainFrame.Size = UDim2.new(0, 400, 0, 270)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.Parent = MainFrame
+UICorner.CornerRadius = UDim.new(0, 14)
+
+UIStroke.Parent = MainFrame
+UIStroke.Color = Color3.fromRGB(230, 20, 60)
+UIStroke.Thickness = 2
+UIStroke.Transparency = 0.15
+
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TopBar.BackgroundTransparency = 1
+TopBar.Size = UDim2.new(1, 0, 0, 45)
+
+TitleLabel.Parent = TopBar
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Position = UDim2.new(0.06, 0, 0, 0)
+TitleLabel.Size = UDim2.new(0.8, 0, 1, 0)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.Text = "🔥 CHILLI HUB"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+TitleLabel.TextSize = 20
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+CloseButton.Parent = TopBar
+CloseButton.BackgroundTransparency = 1
+CloseButton.Position = UDim2.new(0.87, 0, 0.15, 0)
+CloseButton.Size = UDim2.new(0, 35, 0, 35)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "✕"
+CloseButton.TextColor3 = Color3.fromRGB(150, 150, 150)
+CloseButton.TextSize = 16
+
+CloseButton.MouseEnter:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+end)
+CloseButton.MouseLeave:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.2), {TextColor3 = Color3.fromRGB(150, 150, 150)}):Play()
+end)
+
+CloseButton.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+end)
+
+ContentFrame.Parent = MainFrame
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.Position = UDim2.new(0, 0, 0, 45)
+ContentFrame.Size = UDim2.new(1, 0, 1, -45)
+
+Subtitle.Parent = ContentFrame
+Subtitle.BackgroundTransparency = 1
+Subtitle.Position = UDim2.new(0.06, 0, 0.05, 0)
+Subtitle.Size = UDim2.new(0.88, 0, 0, 25)
+Subtitle.Font = Enum.Font.GothamMedium
+Subtitle.Text = "Please enter your key to continue."
+Subtitle.TextColor3 = Color3.fromRGB(180, 180, 180)
+Subtitle.TextSize = 13
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+
+TextBox.Parent = ContentFrame
+TextBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+TextBox.Position = UDim2.new(0.06, 0, 0.25, 0)
+TextBox.Size = UDim2.new(0.88, 0, 0, 45)
+TextBox.Font = Enum.Font.Gotham
+TextBox.PlaceholderText = "Enter your key here..."
+TextBox.Text = ""
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
+TextBox.TextSize = 14
+TextBox.ClearTextOnFocus = false
+
+TextBoxCorner.Parent = TextBox
+TextBoxCorner.CornerRadius = UDim.new(0, 8)
+
+TextBoxStroke.Parent = TextBox
+TextBoxStroke.Color = Color3.fromRGB(50, 50, 50)
+TextBoxStroke.Thickness = 1
+
+CheckButton.Parent = ContentFrame
+CheckButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
+CheckButton.Position = UDim2.new(0.06, 0, 0.54, 0)
+CheckButton.Size = UDim2.new(0.56, 0, 0, 40)
+CheckButton.Font = Enum.Font.GothamBold
+CheckButton.Text = "CHECK KEY"
+CheckButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CheckButton.TextSize = 14
+
+CheckCorner.Parent = CheckButton
+CheckCorner.CornerRadius = UDim.new(0, 8)
+
+GetKeyButton.Parent = ContentFrame
+GetKeyButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+GetKeyButton.Position = UDim2.new(0.65, 0, 0.54, 0)
+GetKeyButton.Size = UDim2.new(0.29, 0, 0, 40)
+GetKeyButton.Font = Enum.Font.GothamBold
+GetKeyButton.Text = "GET KEY"
+GetKeyButton.TextColor3 = Color3.fromRGB(220, 20, 60)
+GetKeyButton.TextSize = 14
+
+GetKeyCorner.Parent = GetKeyButton
+GetKeyCorner.CornerRadius = UDim.new(0, 8)
+
+StatusLabel.Parent = ContentFrame
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0.06, 0, 0.79, 0)
+StatusLabel.Size = UDim2.new(0.88, 0, 0, 25)
+StatusLabel.Font = Enum.Font.GothamMedium
+StatusLabel.Text = ""
+StatusLabel.TextColor3 = Color3.fromRGB(255, 75, 75)
+StatusLabel.TextSize = 13
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
+
+CheckButton.MouseEnter:Connect(function()
+    TweenService:Create(CheckButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 45, 85)}):Play()
+end)
+CheckButton.MouseLeave:Connect(function()
+    TweenService:Create(CheckButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(220, 20, 60)}):Play()
+end)
+
+GetKeyButton.MouseEnter:Connect(function()
+    TweenService:Create(GetKeyButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}):Play()
+end)
+GetKeyButton.MouseLeave:Connect(function()
+    TweenService:Create(GetKeyButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}):Play()
+end)
+
+GetKeyButton.MouseButton1Click:Connect(function()
+    local keyLink = "https://link4m.org/YG8J8J"
+    if setclipboard then
+        setclipboard(keyLink)
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
+        StatusLabel.Text = "Get Key link copied to clipboard!"
+    else
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+        StatusLabel.Text = "Link: " .. keyLink
+    end
+end)
+
+local function smoothShake()
+    local originalPos = UDim2.new(0.5, -200, 0.5, -135)
+    local tweenInfo = TweenInfo.new(0.05, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+    
+    local shakeOffsets = {-8, 8, -6, 6, -3, 3, 0}
+    for _, offset in ipairs(shakeOffsets) do
+        local tween = TweenService:Create(MainFrame, tweenInfo, {Position = originalPos + UDim2.new(0, offset, 0, 0)})
+        tween:Play()
+        tween.Completed:Wait()
+    end
+end
+
+CheckButton.MouseButton1Click:Connect(function()
+    if TextBox.Text == CORRECT_KEY then
+        StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
+        StatusLabel.Text = "Success! Loading script..."
+        
+        -- Lưu key lại để 24 giờ tới không cần nhập nữa
+        saveKey()
+        
+        task.wait(0.8)
+        ScreenGui:Destroy()
+        loadMainScript()
+    else
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 75, 75)
+        StatusLabel.Text = "Incorrect key! Please try again."
+        TextBox.Text = ""
+        task.spawn(smoothShake)
+    end
+end)
